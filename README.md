@@ -5,9 +5,9 @@
 This project demonstrates a comprehensive approach to time series forecasting using the Open University Learning Analytics Dataset (OULAD), incorporating both traditional statistical methods and modern machine learning techniques.
 
 ## Authors
-- Seyyed Alireza Khoshsolat (D03000041)
-- Farshad Farahtaj (D03000028)
-- Zahra Jafarinejad (D03000083)
+- Parham Khosh Solat
+- Farshad Farahtaj 
+- Zahra Jafarinejad 
 
 ## University
 University of Naples Federico II
@@ -63,6 +63,7 @@ July 2, 2024
 1. Clone this repository
    ```bash
    git clone https://github.com/Alirezakhoshsolat/time-series-OULAD.git
+
    cd time-series-OULAD
    ```
 
