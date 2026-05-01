@@ -44,7 +44,7 @@ All models were evaluated on MAE and MAPE to allow direct comparison.
 ## Setup
 
 ```bash
-git clone https://github.com/Alirezakhoshsolat/time-series-OULAD.git
+git clone https://github.com/parhamkhoshsolat/time-series-OULAD.git
 cd time-series-OULAD
 python -m venv venv
 source venv/bin/activate
