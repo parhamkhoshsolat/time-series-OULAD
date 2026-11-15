@@ -24,13 +24,13 @@ Professoressa Flora Amato
    - Proper handling of anomalies and ensuring data stationarity are foundational steps for accurate forecasting.
 
 2. **Model Selection**:
-   - Different models have varying strengths. While SARIMA and ARIMAX effectively captured seasonal patterns, Prophet and CNN models excelled in handling complex trends and multiple seasonalities.
+   - SARIMA and ARIMAX describe the weekly structure through their lag terms, Prophet fits trend and seasonality, and the CNN learns from 30-day windows. Only the CNN was scored on held-out days, so the notebook does not show which model forecasts best.
 
 3. **Feature Engineering**:
-   - The inclusion of lag features significantly improved the performance of ARIMAX and CNN models, highlighting the importance of feature engineering in time series forecasting.
+   - The lag terms at 7, 14, 21 and 28 days are significant in the SARIMAX fit. No run without lags was made, so the notebook does not measure how much the lags improve forecasts.
 
 4. **Model Evaluation**:
-   - Consistent evaluation using MAE and MAPE provided clear insights into model performance, guiding the selection of the best model.
+   - MAE and MAPE were computed for every model, but on different data: the CNN on a chronological hold-out, Prophet on its training data, and SARIMA and ARIMAX on mismatched dates (a forecast past the end of the data against the last observed days). Only the CNN number (MAE 0.20 on log clicks) is a real forecast score, and no naive baseline was run.
 
 ## Methodology
 
@@ -43,7 +43,7 @@ We used several time series forecasting techniques:
 
 ## Results
 
-The project successfully demonstrates how different time series forecasting models can be applied to predict student interactions with virtual learning environments, with the CNN model achieving the best overall performance.
+The project applies four forecasting models to daily student activity on the virtual learning environment. The CNN reached a mean absolute error of 0.20 on log daily clicks over the last 20% of days, held out in time order. The other models were not scored on the same hold-out, so they are not ranked against the CNN, and no naive baseline (for example the value from the same weekday last week) was run. See the main [README](../README.md) for the full list of limits.
 
 ## GitHub Repository
 

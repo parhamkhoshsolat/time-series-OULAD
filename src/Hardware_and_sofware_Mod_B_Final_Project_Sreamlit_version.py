@@ -22,13 +22,13 @@ st.markdown('''Through this project, we demonstrated a comprehensive approach to
    - Proper handling of anomalies and ensuring data stationarity are foundational steps for accurate forecasting.
 
 2. **Model Selection**:
-   - Different models have varying strengths. While SARIMA and ARIMAX effectively captured seasonal patterns, Prophet and CNN models excelled in handling complex trends and multiple seasonalities.
+   - SARIMA and ARIMAX describe the weekly structure through their lag terms, Prophet fits trend and seasonality, and the CNN learns from 30-day windows. Only the CNN was scored on held-out days, so the notebook does not show which model forecasts best.
 
 3. **Feature Engineering**:
-   - The inclusion of lag features significantly improved the performance of ARIMAX and CNN models, highlighting the importance of feature engineering in time series forecasting.
+   - The lag terms at 7, 14, 21 and 28 days are significant in the SARIMAX fit. No run without lags was made, so the notebook does not measure how much the lags improve forecasts.
 
 4. **Model Evaluation**:
-   - Consistent evaluation using MAE and MAPE provided clear insights into model performance, guiding the selection of the best model.
+   - MAE and MAPE were computed for every model, but on different data: the CNN on a chronological hold-out, Prophet on its training data, and SARIMA and ARIMAX on mismatched dates. Only the CNN number is a real forecast score, and no naive baseline was run.
 ''')
 
 # Function to transform code_presentation
@@ -188,7 +188,7 @@ fig = px.line(interaction_counts, title='Interactions Over Time')
 fig.update_xaxes(tickangle=45)
 st.plotly_chart(fig)
 
-st.markdown('''The plot shows how the number of interactions changes over time. Peaks and troughs in the interaction count can indicate periods of high and low student activity. For instance, we can observe multiple spikes in interactions which might correspond to key academic dates such as assignment deadlines or examination periods. The final drop towards zero likely indicates the end of the data collection period.''')
+st.markdown('''The plot shows how the number of interactions changes over time. Peaks and troughs in the interaction count can indicate periods of high and low student activity. The largest spikes line up with the assumed course start dates (1 February and 1 October), so part of their timing may come from the date mapping used in preprocessing. The final drop towards zero likely indicates the end of the data collection period.''')
 
 # 3. Student Assessment Dataset
 st.subheader("Student Assessment Dataset")
@@ -468,7 +468,7 @@ st.write('Prophet Model Mean Absolute Error:', best_mae)
 st.write('Prophet Model Mean Absolute Percentage Error:', best_mape)
 
 st.subheader("Conclusion")
-st.markdown("The Prophet model effectively captured the underlying patterns in the VLE interactions data, providing accurate forecasts. The grid search approach allowed us to optimize the model parameters, ensuring the best possible performance. This step demonstrated the utility of Prophet in handling complex time series data with multiple seasonality, offering a robust solution for future forecasting tasks. The final visualization confirmed the model's accuracy and reliability.")
+st.markdown("Prophet fits the trend and the weekly and yearly patterns of the series. The grid search picks the setting with the lowest error on the training data itself, so the MAE and MAPE above are in-sample and do not measure forecast accuracy on unseen days.")
 
 # ARIMAX Model
 st.subheader("ARIMAX Model")
@@ -657,11 +657,13 @@ actual_clicks = reverse_log_transform(y_test)
 mae_cnn = mean_absolute_error(y_test, y_pred)
 mape_cnn = mean_absolute_percentage_error(y_test, y_pred)
 
-# Plot the predictions
+# Plot the predictions. df_model starts 30 days after filtered_data because of the
+# lag features, so its own index gives the correct date for every row.
 st.subheader('CNN Model Predictions')
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=filtered_data.index[:train_size], y=reverse_log_transform(y_train), mode='lines', name='Training Data'))
-fig.add_trace(go.Scatter(x=filtered_data.index[train_size:train_size+len(predicted_clicks)], y=predicted_clicks, mode='lines', name='Predicted Data', line=dict(color='orange')))
+fig.add_trace(go.Scatter(x=train.index, y=reverse_log_transform(y_train), mode='lines', name='Training Data'))
+fig.add_trace(go.Scatter(x=test.index, y=actual_clicks, mode='lines', name='Actual (hold-out)', line=dict(color='grey')))
+fig.add_trace(go.Scatter(x=test.index, y=predicted_clicks, mode='lines', name='Predicted Data', line=dict(color='orange')))
 fig.update_layout(title='CNN Model Predictions', xaxis_title='Date', yaxis_title='Total Clicks')
 fig.update_xaxes(tickangle=45)
 st.plotly_chart(fig)
@@ -686,7 +688,7 @@ fig = px.bar(model_comparison_melted, x="Model", y="Value", color="Metric", barm
 st.plotly_chart(fig)
 
 st.subheader("Model Comparison Conclusion:")
-st.markdown('''the ARIMAX model shows the lowest MAE, its very high MAPE suggests it might not be well-calibrated relative to the scale of the data. The Prophet model demonstrates a good balance with low MAE and the lowest MAPE, indicating strong overall performance. The CNN model also performs well, especially in relative terms.''')
+st.markdown('''These numbers are not comparable, so the chart is not a ranking. Prophet's MAE and MAPE are computed on its own training data. ARIMAX's are computed on the differenced series and compare a forecast of the 240 days after the data ends with the last 240 observed days, which are different dates. A very high MAPE is expected for ARIMAX, because MAPE divides by differenced values that are close to zero. Only the CNN is scored on held-out days, in time order. No naive baseline (for example the value from the same weekday last week) was run, so the CNN's error cannot be judged on its own.''')
 
 
 st.header('Conclusion')
@@ -718,7 +720,7 @@ In this project, we tackled the challenging problem of forecasting Virtual Learn
   - The Augmented Dickey-Fuller (ADF) test was employed to check for stationarity. Our data required differencing to achieve stationarity, a prerequisite for many time series models.
 
 - **Lag Features**:
-  - We introduced multiple lag features (up to 30 days) to capture the temporal dependencies in the data. These features help the models learn from past interactions and improve forecast accuracy.
+  - We introduced lag features (1, 2, 3, 7, 14, 21 and 28 days for ARIMAX; a 30-day input window for the CNN) to capture the temporal dependencies in the data.
 
 #### 3. Forecasting Models
 
@@ -729,10 +731,8 @@ In this project, we tackled the challenging problem of forecasting Virtual Learn
   - The model captured additional information from lag features, improving its predictive capabilities.
 
 - **Model Performance Evaluation**:
-  - Similar to SARIMA, ARIMAX provided reliable forecasts with good MAE and MAPE values.
-  - The inclusion of exogenous variables was particularly beneficial in capturing complex dependencies.
-  - Strengths: Low MAE indicates that the model's average absolute error is small.
-  - Weaknesses: Extremely high MAPE indicates that the model's predictions are off by a large percentage, which could imply issues with how the model is handling the data or scaling.
+  - The lag terms at 7, 14, 21 and 28 days are significant in the fit.
+  - The printed MAE and MAPE compare a forecast past the end of the data with the last observed days, which are different dates, so they do not measure forecast quality.
 
 ##### 3.2 Prophet Model
 
@@ -741,12 +741,10 @@ In this project, we tackled the challenging problem of forecasting Virtual Learn
   - A grid search over hyperparameters such as yearly and weekly seasonality, changepoint prior scale, and seasonality mode was performed to find the best model configuration.
 
 - **Forecasting with Prophet**:
-  - Prophet effectively modeled the trend and seasonality in the VLE interactions data.
-  - The final model provided forecasts with competitive MAE and MAPE values, demonstrating its capability to handle complex time series data.
+  - Prophet modeled the trend and seasonality in the VLE interactions data.
 
 - **Model Performance Evaluation**:
-  - Strengths: The Prophet model strikes a balance with a relatively low MAE and the lowest MAPE, indicating good performance both in absolute and relative terms.
-  - Weaknesses: Slightly higher MAE compared to ARIMAX, but still within an acceptable range.
+  - Its MAE and MAPE are computed on its own training data (in-sample), so they are not comparable with the CNN's hold-out score.
   
 ##### 3.3 CNN Model
 
@@ -759,6 +757,7 @@ In this project, we tackled the challenging problem of forecasting Virtual Learn
   - This setup allowed the model to learn both local and global patterns in the data.
 
 - **Model Performance Evaluation**:
-  - Strengths: The CNN model captures complex patterns in the data, which may contribute to its relatively low MAPE, indicating that the model performs well relative to the actual values.
-  - Weaknesses: Higher MAE compared to ARIMAX suggests that, in absolute terms, the CNN model's errors are larger.
-In conclusion, this project provided a robust framework for forecasting VLE interactions, showcasing the effectiveness of combining statistical and machine learning techniques to achieve accurate and reliable predictions. The insights gained here will be invaluable for future projects involving time series data.''')
+  - The CNN is the only model scored on held-out days (the last 20% of the series, in time order); in the original run its MAE was 0.20 on log daily clicks.
+  - Limits: the anomaly z-scores and the replacement median are computed over the whole series, test period included, and no naive baseline was run, so the error cannot be judged on its own.
+
+In conclusion, the project applies four forecasting methods to daily VLE activity. Only the CNN has a hold-out score, so the methods are not ranked against each other.''')
