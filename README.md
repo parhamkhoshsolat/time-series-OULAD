@@ -54,6 +54,8 @@ jupyter notebook notebooks/Harware_and_Software_Mod_B_Final_Project.ipynb
 streamlit run src/Hardware_and_sofware_Mod_B_Final_Project_Sreamlit_version.py
 ```
 
+The notebook reads the OULAD CSV files (`studentVle.csv`, `studentInfo.csv`, `courses.csv` and the others) from a folder on my own machine (`D:\study\...\archive\`). To re-run it, put the files in `data/` and change those paths to `data/`. Its cells were run out of order during the project, so the saved run numbers are not in sequence.
+
 ## Project layout
 
 ```
